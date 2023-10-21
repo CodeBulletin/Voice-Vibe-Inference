@@ -2,12 +2,29 @@ import numpy as np
 import librosa
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
+from dotenv import load_dotenv
 from helper import pad_to_length, convert_to_mfcc_extra, normalize
 import io
-from matplotlib import pyplot as plt
+import random
+import os
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+
+load_dotenv()
+
+time = float(os.getenv('TIME'))
+sample_rate = int(os.getenv('SAMPLE_RATE'))
+
+# Check if temp folder exists and create it if not
+if not os.path.exists('temp'):
+    os.makedirs('temp')
+ 
+def predict(spec): #placeholder
+    return random.choice(['happy', 'sad', 'angry']) 
+
+def random_file():
+    return ''.join([random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(10)])
 
 @app.route('/')
 def index():
@@ -19,22 +36,26 @@ def handle_audio(audio_data):
 
     audio_bytes = io.BytesIO(audio_data)
 
-    with open('audio.wav', 'wb') as f:
+    file = './temp/' + random_file() + '.wav'
+
+    with open(file, 'wb') as f:
         f.write(audio_bytes.getbuffer())
 
     # Load the audio data
-    audio_array, sample_rate = librosa.load('audio.wav', sr=16000)
+    audio_array, _ = librosa.load(file, sr=sample_rate, mono=True)
 
-    # Pad the audio data
-    audio_array = pad_to_length(audio_array, int(3.5 * sample_rate))
+    #delete the file
+    os.remove(file)
 
     # Generate and save the spectrogram
     spectrogram = convert_to_mfcc_extra(audio_array)
     spectrogram = normalize(spectrogram)
 
-    print(spectrogram.shape)
+    print('spectrogram shape', spectrogram.shape)
 
-    emit('response', spectrogram.tolist())
+    value = predict(spectrogram)
+
+    emit('response', value)
 
 
 if __name__ == '__main__':

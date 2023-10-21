@@ -1,8 +1,10 @@
 const startButton = document.getElementById('startButton');
 const stopButton = document.getElementById('stopButton');
+const result = document.getElementById('result');
 
 let mediaRecorder;
 let audioChunks = [];
+let actualChunks = [];
 
 // WebSocket connection to the backend
 const socket = io.connect('http://' + document.domain + ':' + location.port);
@@ -29,28 +31,41 @@ async function startRecording() {
         }
     };
 
+    mediaRecorder.onstop = () => {
+        // Convert audioChunks to a Blob
+        actualChunks = audioChunks.splice(0, audioChunks.length);
+        const audioBlob = new Blob(actualChunks, { type: 'audio/wav' });
+
+        // Send the audio data to the backend using socket.io
+
+        socket.emit('audio', audioBlob);
+
+        // Reset audioChunks
+        audioChunks = [];
+    }
+
     mediaRecorder.start();
+    await new Promise((resolve) => setTimeout(resolve, 3500));
+    send_data();
 }
 
 function stopRecording() {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
         mediaRecorder.stop();
-        mediaRecorder.onstop = () => {
-            // Convert audioChunks to a Blob
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            console.log(audioBlob)
-
-            // Send the audio data to the backend using socket.io
-
-            socket.emit('audio', audioBlob);
-
-            // Reset audioChunks
-            audioChunks = [];
-        }
     }
 }
 
 // Get the response from the backend
 socket.on('response', function (data) {
-    console.log(data)
+    result.innerHTML = data;
 });
+
+//Send the audio data to the backend every 3.5 seconds
+async function send_data() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        mediaRecorder.start();
+        await new Promise((resolve) => setTimeout(resolve, 3500));
+        send_data();
+    }
+}

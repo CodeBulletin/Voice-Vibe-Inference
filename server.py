@@ -7,6 +7,7 @@ from helper import pad_to_length, convert_to_mfcc_extra, normalize
 import io
 import random
 import os
+import pickle
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -16,12 +17,20 @@ load_dotenv()
 time = float(os.getenv('TIME'))
 sample_rate = int(os.getenv('SAMPLE_RATE'))
 
+# load the model from disk
+filepath = './models/RandomForest.pkl'
+model = pickle.load(open(filepath, 'rb'))
+
+classes = np.loadtxt('classes.txt', dtype=str)
+
 # Check if temp folder exists and create it if not
 if not os.path.exists('temp'):
     os.makedirs('temp')
  
-def predict(spec): #placeholder
-    return random.choice(['happy', 'sad', 'angry']) 
+def predict(spec): 
+    y = model.predict([spec])[0]
+    print(y)
+    return classes[y]
 
 def random_file():
     return ''.join([random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(10)])

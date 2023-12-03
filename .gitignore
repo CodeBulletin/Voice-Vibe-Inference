@@ -3,3 +3,5 @@ __pycache__
 audio.wav
 temp
 models/*.pkl
+models/*.h5
+etc/

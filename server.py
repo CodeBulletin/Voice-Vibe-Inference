@@ -19,10 +19,6 @@ time = float(os.getenv('TIME'))
 sample_rate = int(os.getenv('SAMPLE_RATE'))
 mel_len = int(os.getenv('MEL_LEN'))
 
-# load the model from disk
-filepath = './models/RandomForest.pkl'
-model = pickle.load(open(filepath, 'rb'))
-
 model = keras.Sequential([
 
     # convolution layers

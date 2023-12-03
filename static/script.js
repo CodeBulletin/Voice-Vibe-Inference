@@ -1,24 +1,44 @@
-const startButton = document.getElementById('startButton');
-const stopButton = document.getElementById('stopButton');
+// const { SiriWave } = require('./siriwave.js');
+
+const toggleButton = document.getElementById('toggleRecording');
 const result = document.getElementById('result');
+const filter = document.getElementById('bgg');
+
+console.log(toggleButton);
+console.log(result);
+console.log(filter);
+
 
 let mediaRecorder;
 let audioChunks = [];
 let actualChunks = [];
+let recording = false;
+
+var siriWave = new SiriWave({
+    container: document.getElementById("siri"),
+    width: 900,
+    height: 400,
+    style: 'ios9'
+});
+
+siriWave.stop();
+
+filter.classList.add('filter');
 
 // WebSocket connection to the backend
 const socket = io.connect('http://' + document.domain + ':' + location.port);
 
-startButton.addEventListener('click', () => {
-    startRecording();
-    startButton.style.display = 'none';
-    stopButton.style.display = 'block';
-});
-
-stopButton.addEventListener('click', () => {
-    stopRecording();
-    startButton.style.display = 'block';
-    stopButton.style.display = 'none';
+toggleButton.addEventListener('click', () => {
+    recording = !recording;
+    if (recording) {
+        startRecording();
+        filter.classList.remove('filter');
+        siriWave.start();
+    } else {
+        stopRecording();
+        filter.classList.add('filter');
+        siriWave.stop();
+    }
 });
 
 async function startRecording() {

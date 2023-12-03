@@ -23,7 +23,8 @@ stopButton.addEventListener('click', () => {
 
 async function startRecording() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder = new MediaRecorder(stream,
+        { mimeType: 'audio/webm;codecs=opus' });
 
     mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
@@ -34,6 +35,8 @@ async function startRecording() {
     mediaRecorder.onstop = () => {
         // Convert audioChunks to a Blob
         actualChunks = audioChunks.splice(0, audioChunks.length);
+
+        
         const audioBlob = new Blob(actualChunks, { type: 'audio/wav' });
 
         // Send the audio data to the backend using socket.io

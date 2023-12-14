@@ -97,7 +97,7 @@ body {
     height: 100px;
     background-color: #000;
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
     background-color: #00000085;
     /* blur */
@@ -167,4 +167,44 @@ body {
 
     backdrop-filter: grayscale(100%);
     transform: scale(0); */
+}
+
+.fileUpload {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fileUpload form {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inputfile {
+    display: none;
+}
+
+.fileUpload label {
+    height: 60px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-image: url("/static/imgs/grad2.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+
+    border-radius: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+
+    color: #fff;
+    font-size: 30px;
+    font-weight: bold;
+    font-family: 'Poppins', sans-serif;
 }

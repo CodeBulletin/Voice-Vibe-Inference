@@ -1,5 +1,5 @@
 import numpy as np
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 from helper import *
@@ -18,6 +18,9 @@ load_dotenv()
 time = float(os.getenv('TIME'))
 sample_rate = int(os.getenv('SAMPLE_RATE'))
 mel_len = int(os.getenv('MEL_LEN'))
+
+UPLOAD_FOLDER = './temp'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 model = keras.Sequential([
 
@@ -47,7 +50,12 @@ model = keras.Sequential([
 
 model.load_weights('./models/Model.h5')
 
+# save model summary
+with open('model_summary.txt', 'w') as f:
+    model.summary(print_fn=lambda x: f.write(x + '\n'))
+
 classes = np.loadtxt('classes.txt', dtype=str)
+print(classes)
 
 # Check if temp folder exists and create it if not
 if not os.path.exists('temp'):
@@ -62,6 +70,34 @@ def predict(spec):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/upload', methods=["post"])
+def handle_audiofile():
+    if 'file' not in request.files:
+        return jsonify({'message': 'No file part'}), 400
+
+    file = request.files['file']
+
+    # If the user does not select a file, the browser submits an
+    # empty file without a filename.
+    if file.filename == '':
+        return jsonify({'message': 'No selected file'}), 400
+
+    if file:
+        filename = file.filename
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    
+    # Classify audio file
+    librosa_audio, librosa_sample_rate = librosa.load(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    reduce_sample_rate(librosa_audio, sample_rate)
+    librosa_audio = pad_to_length(librosa_audio, int(sample_rate*time))
+    mel = convert_to_mel_spectrogram(librosa_audio, sr=sample_rate)
+    mel = np.pad(mel, ((0, 0), (0, mel_len - mel.shape[1])), 'constant', constant_values=0)
+    value = predict(mel)
+
+    return jsonify({'message': value}), 200
+
+
 
 @socketio.on('audio')
 def handle_audio(audio_data):

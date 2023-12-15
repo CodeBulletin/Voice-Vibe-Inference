@@ -23,6 +23,8 @@ var siriWave = new SiriWave({
     style: 'ios9'
 });
 
+siriWave.setAmplitude(0);
+
 // siriWave.stop();
 
 // filter.classList.add('filter');
@@ -102,6 +104,8 @@ file.addEventListener('change', function () {
         const formData = new FormData();
         formData.append('file', this.files[0]);
 
+        let url = URL.createObjectURL(this.files[0]);
+
         fetch('/upload', {
             method: 'POST',
             body: formData
@@ -114,5 +118,14 @@ file.addEventListener('change', function () {
             .catch(error => {
                 console.error(error);
             });
+
+        siriWave.setAmplitude(1.5);
+        let audio = new Audio(url);
+        audio.play();
+
+        // On Audio end, stop the siriWave
+        audio.onended = function () {
+            siriWave.setAmplitude(0);
+        };
     }
 });
